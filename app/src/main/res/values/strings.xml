@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">ImageTransfer</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+
+    <string-array name="transfer_imgNames_string_array">
+        <item>NFC</item>
+        <item>Bluetooth</item>
+        <item>Wifi</item>
+    </string-array>
+
+    <string-array name="transfer_imgs_string_array">
+        <item>@drawable/nfc</item>
+        <item>@drawable/bluetooth</item>
+        <item>@drawable/wifi</item>
+    </string-array>
+</resources>

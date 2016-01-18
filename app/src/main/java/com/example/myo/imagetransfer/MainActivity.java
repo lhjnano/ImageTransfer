@@ -14,6 +14,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -33,7 +34,7 @@ public class MainActivity extends ActionBarActivity {
 
     // 데이터 교환 연결자
     private SocketServer_Connect socketServer_connect = new SocketServer_Connect(serverObserver);
-    private SocketClient_Connect socketClient_connect = new SocketClient_Connect(clientObserver);
+    private SocketClient_Connect socketClient_connect;//TODO = new SocketClient_Connect(clientObserver);
 
     // 이미지 파일 관리자
     private FilePathManager filePathManager = new FilePathManager();
@@ -57,11 +58,10 @@ public class MainActivity extends ActionBarActivity {
         listView_main.setAdapter(imageListAdapter_main);
 
         // 5. listview에 어뎁터를 통하여 item 추가
-        filePathManager.searchFiles();
-
-        ArrayList<String> filenames = filePathManager.ketSet();
-        for(String filename : filenames) {
-            imageListAdapter_main.add(filename);
+        FilePathManager fileManager = new FilePathManager();
+        HashMap<String, String[]> fileMap = fileManager.getFileMap();
+        for(String uuid : fileMap.keySet()){
+            imageListAdapter_main.add(uuid, fileMap.get(uuid));
         }
 
         listView_main.setOnItemClickListener(imageItemClickListener_main);
@@ -95,7 +95,7 @@ public class MainActivity extends ActionBarActivity {
         /**
          * 모든 전송작업이 끝나거나 처음 시작할때 연결 설정을 위한 클라이언트 서버 리스닝 시작
          */
-        ListeningCenter listeningCenter = new ListeningCenter(clientObserver);
+        // TODO ListeningCenter listeningCenter = new ListeningCenter(clientObserver);
     }
 
 
@@ -191,7 +191,7 @@ public class MainActivity extends ActionBarActivity {
                 for(Bundle bundle : messages) {
                     if(bundle.getString("code").matches("ok...") && bundle.getString("ip").matches(clientIp)) {
                         // 클라이언트 연결
-                        SocketClient sc = new SocketClient(clientIp, port);
+                        // TODO SocketClient sc = new SocketClient(clientIp, port);
                         // 파일 설정
                         //sc.setPath(filePathManager.get(""));
                     }

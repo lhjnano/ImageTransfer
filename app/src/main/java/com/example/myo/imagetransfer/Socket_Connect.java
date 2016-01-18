@@ -59,7 +59,7 @@ public class Socket_Connect {
 
         // 데이터 전송
         public void run(){
-            while(count > 0) {
+            while(count-- > 0) {
                 try {
                     DatagramPacket dp = new DatagramPacket(message.getBytes(), message.length(), ip, port);
                     DatagramSocket ds = new DatagramSocket();
@@ -67,7 +67,7 @@ public class Socket_Connect {
                     ds.close();
                     Thread.sleep(500);
                 } catch (SocketException e) {
-                    Log.d("SearchSocket", "Error : SocketException");
+                    Log.d("SearchSocket", "Error : SocketException, count : " + count );
                 } catch (IOException e) {
                     Log.d("SearchSocket", "Error : IOException");
                 } catch (InterruptedException e) {
@@ -109,7 +109,7 @@ public class Socket_Connect {
                         observer.update(message);
                     }
                 } catch (SocketException e) {
-                    Log.d("SearchSocket", "Error : SocketException");
+                    Log.d("SearchSocket", "Error : SocketException_Receive");
                 } catch (IOException e) {
                     Log.d("SearchSocket", "Error : IOException");
                 }

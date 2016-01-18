@@ -17,7 +17,7 @@ public class SocketClient {
     public SocketClient(String ip,int port){
         try {
             // 1. socket open
-            Socket socket = new Socket(ip, port);
+            socket = new Socket(ip, port);
         } catch (IOException e) {
             Log.d("SocketClient","Error : IOException");
         }
@@ -33,7 +33,7 @@ public class SocketClient {
     public void write(){
         try {
             // 1. file read
-            FileInputStream fis = new FileInputStream("//path");
+            FileInputStream fis = new FileInputStream(path);
             byte[] data = new byte[fis.available()];
             fis.read(data);
 

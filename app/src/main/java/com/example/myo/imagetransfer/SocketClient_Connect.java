@@ -10,11 +10,11 @@ public class SocketClient_Connect extends Socket_Connect {
     }
 
     public void responseBroadcast(String ip) {
-        new Send(ip, SERVERSIDE_READPORT,"checking...",1).start();
+         new Send(ip, SERVERSIDE_READPORT,"checking...",1).start();
     }
 
     public void ok(String ip) {
-        new Send(ip, SERVERSIDE_READPORT,"ok...",1).start();
+         new Send(ip, SERVERSIDE_READPORT,"ok...",1).start();
     }
 
 }

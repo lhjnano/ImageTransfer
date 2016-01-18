@@ -105,6 +105,10 @@ public class ImageListAdapter extends BaseAdapter {
         }
     }
 
+    public ArrayList<String[]> getList(){
+        return list;
+    }
+
     private class Holder {
         /**
          *  스크롤 시 데이터가 변경 되는 것과 findViewById()를

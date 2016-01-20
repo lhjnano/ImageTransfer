@@ -49,11 +49,11 @@ public class FilePathManager {
         fileMap.put(UUID.randomUUID().toString(), fileData);
     }
 
-    public void get(String uuid) {
+    public String[] get(String uuid) {
         /**
          * 파일 반환
          */
-        fileMap.get(uuid);
+        return fileMap.get(uuid);
     }
 
     public void remove(String uuid) {

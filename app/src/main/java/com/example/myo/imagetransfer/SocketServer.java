@@ -5,9 +5,11 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -57,25 +59,23 @@ public class SocketServer extends Thread {
             oos.writeUTF(name);
             oos.flush();
 
-            // 3. send img
-
+            OutputStream os = new BufferedOutputStream(s.getOutputStream());
+            // 3. sending
+            sendMessage("show",null);
             for( int i = 0 ; i < data.length; i++ ) {
-                oos.write(data[i]);
-
+                os.write(data[i]);
                 // 로딩바를 구현하기 위해서 메시지큐에 메시지를 전송
-                Message progress = Message.obtain();
-                Bundle bundle = new Bundle();
-                bundle.putInt("progress", i/data.length*100 );
-                progress.obj = bundle;
-                handler.sendMessage(progress);
-                oos.flush();
+                sendMessage("progress", ""+(int)i*100/data.length );
             }
+            sendMessage("dismiss", null);
+            os.close();
+            oos.flush();
             oos.close();
+            close();
         } catch (IOException e) {
-            Log.d("SocketClient","Error : IOException");
+            Log.d("SocketServer","Error : IOException");
         }
     }
-
 
     public void close(){
         try {
@@ -85,4 +85,11 @@ public class SocketServer extends Thread {
         }
     }
 
+    public void sendMessage(String key, String value) {
+        Message progress = Message.obtain();
+        Bundle bundle = new Bundle();
+        bundle.putString(key, value);
+        progress.obj = bundle;
+        handler.sendMessageAtFrontOfQueue(progress);
+    }
 }

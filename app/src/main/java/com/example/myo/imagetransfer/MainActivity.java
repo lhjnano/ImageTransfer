@@ -1,46 +1,46 @@
 package com.example.myo.imagetransfer;
 
-import android.content.Context;
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
 
     // socket ports
-    private static final int SERVERSIDE_WPORT = 8000;
-    private static final int SERVERSIDE_RPORT = 8200;
+    private static final int SERVERSIDE_WPORT          = 8000;
 
     // tranfer identification
     private static final int TRANSFER_CODE_NFC         = 0x0000;
-    private static final int TRANSFER_CODE_BLUETOOTH   = 0x0001;
+    private static final int TRANSFER_CODE_BLUETOOTH  = 0x0001;
     private static final int TRANSFER_CODE_WIFI        = 0x0002;
 
-    // NFC          --- 추후 구현
-    // Bluetooth    --- 추후 구현
+    // ProgressDialog
+    private static final int PROGRESS_DIALOG           = 0x0011;
 
     // 이미지 파일 관리자
     private FilePathManager filePathManager = new FilePathManager();
     // 이미지 어뎁터
     private  ImageListAdapter imageListAdapter_main;
 
-    ProgressHandler progressHandler;
+    // 이미지 전송 로딩다이얼로그 관련
+    private ProgressHandler progressHandler = new ProgressHandler();;
+    private ProgressDialog progressDialog;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,7 +71,7 @@ public class MainActivity extends ActionBarActivity {
         // 5. 리스너 등록
         listView_main.setOnItemClickListener(imageItemClickListener_main); // 1) 이미지 리스트뷰 선택 리스너
 
-        progressHandler = new ProgressHandler();
+        progressDialog = onCreateDialogToID(PROGRESS_DIALOG);
     }
 
 
@@ -163,56 +163,47 @@ public class MainActivity extends ActionBarActivity {
         socketServer.setPath(filename, filepath);
         socketServer.start();
         socketServer.setHandler(progressHandler);
-        createLoadingBarDialog().show();
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        if(socketServer.accept())
-            Toast.makeText(getApplicationContext(), "accepting", Toast.LENGTH_LONG).show();
     }
 
-    // ----------------- 5) 전송중 다이얼로그 ---------------
-    private AlertDialog createLoadingBarDialog(){
-
-        // 1. 프로그래스 뷰 설정
-        LayoutInflater inflater = (LayoutInflater)getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = inflater.inflate(R.layout.loadingbar,(ViewGroup)findViewById(R.id.loadingbar_root),false);
-
-        ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.progressBar_loadingbar);
-        TextView textView       = (TextView)    view.findViewById(R.id.textview_loadingbar);
-
-        progressBar.setProgress(0);
-        //textView.setText(0);
-
-        // 4. 다이얼로그 생성 및 레이아웃 설정
-        AlertDialog.Builder builder;
-        AlertDialog alertDialog;
-
-        builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setTitle("전송중");
-        builder.setView(view);
-        alertDialog = builder.create();
-        return alertDialog;
+    private ProgressDialog onCreateDialogToID(int id) {
+        switch (id) {
+            case PROGRESS_DIALOG:
+                /**
+                 *  이미지 전송 로딩바 다이얼로그
+                 */
+                ProgressDialog progressDialog = new ProgressDialog(this);
+                progressDialog.setMessage("Transfer... Image");
+                progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                progressDialog.setCancelable(false);
+                return progressDialog;
+            default:
+                return null;
+        }
     }
 
     public class ProgressHandler extends Handler{
+        @Override
         public void handleMessage(Message msg){
             // SocketServer로부터 진행상황 보고 수신
             Bundle bundle = msg.getData();
-            int progress =  bundle.getInt("progress");
-            if( progress != 0 ) {
-                // 프로그래스 설정
-                LayoutInflater inflater = (LayoutInflater)getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                View view = inflater.inflate(R.layout.loadingbar,(ViewGroup)findViewById(R.id.loadingbar_root),false);
-
-                ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.progressBar_loadingbar);
-                TextView textView       = (TextView)    view.findViewById(R.id.textview_loadingbar);
-
-                progressBar.setProgress(progress);
-                textView.setText(progress);
+            Set<String> keys = bundle.keySet();
+            Iterator iterator =  keys.iterator();
+            String key = iterator.hasNext() ? (String)iterator.next() : "";
+            Log.d("_______Message",key);
+            switch( key ) {
+                case "progress":
+                    progressDialog.setProgress(Integer.parseInt(bundle.getString("progress")));
+                    break;
+                case "dismiss":
+                    Log.d("ProgressDialog","dismiss");
+                    progressDialog.dismiss();
+                    break;
+                case "show":
+                    Log.d("ProgressDialog", "show");
+                    progressDialog.show();
+                    break;
+                default:
+                    return;
             }
         }
     }

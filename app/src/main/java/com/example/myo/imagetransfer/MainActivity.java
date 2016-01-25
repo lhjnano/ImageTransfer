@@ -1,23 +1,21 @@
 package com.example.myo.imagetransfer;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
 
 
 public class MainActivity extends Activity {
@@ -39,8 +37,9 @@ public class MainActivity extends Activity {
     private  ImageListAdapter imageListAdapter_main;
 
     // 이미지 전송 로딩다이얼로그 관련
-    private ProgressHandler progressHandler = new ProgressHandler();;
-    private ProgressDialog progressDialog;
+    private SocketServer socketServer ;
+    private ProgressBar progressBar;
+
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,12 +65,11 @@ public class MainActivity extends Activity {
         for(String uuid : fileMap.keySet()){
             imageListAdapter_main.add(uuid, fileMap.get(uuid));
         }
-        imageListAdapter_main.add("123", new String[]{"noimage", "path"});
 
         // 5. 리스너 등록
         listView_main.setOnItemClickListener(imageItemClickListener_main); // 1) 이미지 리스트뷰 선택 리스너
 
-        progressDialog = onCreateDialogToID(PROGRESS_DIALOG);
+
     }
 
 
@@ -151,8 +149,24 @@ public class MainActivity extends Activity {
         /**
          * TCP 소켓 전송
          */
+
+        Context context = getApplicationContext();
+        LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View convertView = inflater.inflate(R.layout.loadingbar, null, false);
+        TextView textView = (TextView)convertView.findViewById(R.id.textview_loadingbar);
+        textView.setText("전송중");
+
+        AlertDialog.Builder builder;
+        AlertDialog alertDialog;
+
+        builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setView(convertView);
+        alertDialog = builder.create();
+
+        alertDialog.show();
+
         // 1) 소켓 오픈
-        SocketServer socketServer = new SocketServer(SERVERSIDE_WPORT);
+        socketServer = new SocketServer(SERVERSIDE_WPORT,convertView,alertDialog);
         Toast.makeText(getApplicationContext(), filePathManager.get(fileUuid)[1], Toast.LENGTH_LONG).show();
         Log.d("_______", filePathManager.get(fileUuid)[1]);
         // 2) 이미지 파일 설정
@@ -161,50 +175,9 @@ public class MainActivity extends Activity {
 
         // 3) 소캣 시작
         socketServer.setPath(filename, filepath);
-        socketServer.start();
-        socketServer.setHandler(progressHandler);
+        socketServer.execute(100);
+
+
     }
 
-    private ProgressDialog onCreateDialogToID(int id) {
-        switch (id) {
-            case PROGRESS_DIALOG:
-                /**
-                 *  이미지 전송 로딩바 다이얼로그
-                 */
-                ProgressDialog progressDialog = new ProgressDialog(this);
-                progressDialog.setMessage("Transfer... Image");
-                progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                progressDialog.setCancelable(false);
-                return progressDialog;
-            default:
-                return null;
-        }
-    }
-
-    public class ProgressHandler extends Handler{
-        @Override
-        public void handleMessage(Message msg){
-            // SocketServer로부터 진행상황 보고 수신
-            Bundle bundle = msg.getData();
-            Set<String> keys = bundle.keySet();
-            Iterator iterator =  keys.iterator();
-            String key = iterator.hasNext() ? (String)iterator.next() : "";
-            Log.d("_______Message",key);
-            switch( key ) {
-                case "progress":
-                    progressDialog.setProgress(Integer.parseInt(bundle.getString("progress")));
-                    break;
-                case "dismiss":
-                    Log.d("ProgressDialog","dismiss");
-                    progressDialog.dismiss();
-                    break;
-                case "show":
-                    Log.d("ProgressDialog", "show");
-                    progressDialog.show();
-                    break;
-                default:
-                    return;
-            }
-        }
-    }
 }
